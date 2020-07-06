@@ -1,5 +1,7 @@
 import itertools
 
+import pandas as pd
+
 
 def pre_example(sql_in, params):
 
@@ -88,3 +90,48 @@ def get_measures(
     for i in itertools.product(measures, func):
         rst.append(", ".join(i))
     return rst
+
+
+def run(data_in, params):
+    """
+    data_in:    缺省为单个数据框list [Dataframe]
+    params:     默认前端有以下三个多选控件
+    """
+    p_val = params.get("统计值", None)
+    p_index = params.get("行维度", None)
+    p_col = params.get("列维度", None)
+
+    # 错误提示直接返回
+    if data_in[0].shape == (1, 1):
+        return data_in[0]
+
+    try:
+        if p_col:
+            if p_index:
+                # 有行有列：展开列
+                df1 = data_in[0].set_index(p_col + p_index)
+                df1 = df1.unstack(list(range(len(p_col)))).reset_index()
+
+                # Multiindex Column DataFrame，压平多维行和列
+                if isinstance(df1, pd.DataFrame) and isinstance(
+                    df1.columns, pd.MultiIndex
+                ):
+                    df1.columns = [
+                        ", ".join([str(x) for x in col]).strip(", ")
+                        for col in df1.columns.values
+                    ]
+            else:
+                # 无行有列：转置
+                # df1 = data_in[0].set_index(p_col).T.reset_index()
+
+                # 多个列维度情况下，转置后json读取失败，这里直接转为行维度
+                df1 = data_in[0]
+
+        else:
+            # 纯一维数据，且index为一维纯数字，直接展示即可
+            df1 = data_in[0]
+    except Exception as e:
+        df1 = pd.DataFrame({"错误": [str(e)]})
+        # raise
+
+    return df1[: int(params.get("行数", 300000))]  # 通过参数来过滤行数 。
