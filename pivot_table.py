@@ -3,11 +3,11 @@ import itertools
 import pandas as pd
 
 
-def pre_example(sql_in, params):
+def pre(sql_in, params):
 
-    p_val = params.get("统计值", None)
-    p_index = params.get("行维度", None)
-    p_col = params.get("列维度", None)
+    p_val = params.get("measures")
+    p_index = params.get("row_dims")
+    p_col = params.get("col_dims")
 
     try:
         # 生成统计字段===============
@@ -97,9 +97,9 @@ def run(data_in, params):
     data_in:    缺省为单个数据框list [Dataframe]
     params:     默认前端有以下三个多选控件
     """
-    p_val = params.get("统计值", None)
-    p_index = params.get("行维度", None)
-    p_col = params.get("列维度", None)
+    p_val = params.get("measures", None)
+    p_index = params.get("row_dims", None)
+    p_col = params.get("col_dims", None)
 
     # 错误提示直接返回
     if data_in[0].shape == (1, 1):
