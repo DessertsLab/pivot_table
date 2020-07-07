@@ -4,18 +4,22 @@ import pandas as pd
 
 
 def pre(sql_in, params):
+    """
+    Pre process sachima sql into agg mode before run it
+    usage:
+        "model": [("s_0038_apply.sql", db.ENGINE_IMPALA_DW, pivot_table.pre)],
+    """
 
-    p_val = params.get("measures")
-    p_index = params.get("row_dims")
-    p_col = params.get("col_dims")
+    measures = params.get("measures") # measure_name,sum
+    p_index = params.get("row_dims") # list
+    p_col = params.get("col_dims") # list
 
     try:
-        # 生成统计字段===============
         s_calc = ""
-        if p_val:
+        if measures:
             p_aggfunc = {}
-            for p in p_val:
-                i, f = list(map(str.strip, p.split(",")))
+            for m in measures:
+                i, f = list(map(str.strip, m.split(",")))
                 if i in p_aggfunc:
                     if isinstance(p_aggfunc[i], list):
                         p_aggfunc[i].append(f)
@@ -97,7 +101,7 @@ def run(data_in, params):
     data_in:    缺省为单个数据框list [Dataframe]
     params:     默认前端有以下三个多选控件
     """
-    p_val = params.get("measures", None)
+    # p_val = params.get("measures", None)
     p_index = params.get("row_dims", None)
     p_col = params.get("col_dims", None)
 
@@ -121,10 +125,6 @@ def run(data_in, params):
                         for col in df1.columns.values
                     ]
             else:
-                # 无行有列：转置
-                # df1 = data_in[0].set_index(p_col).T.reset_index()
-
-                # 多个列维度情况下，转置后json读取失败，这里直接转为行维度
                 df1 = data_in[0]
 
         else:
@@ -132,6 +132,5 @@ def run(data_in, params):
             df1 = data_in[0]
     except Exception as e:
         df1 = pd.DataFrame({"错误": [str(e)]})
-        # raise
 
-    return df1[: int(params.get("行数", 300000))]  # 通过参数来过滤行数 。
+    return df1
